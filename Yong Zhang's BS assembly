@@ -1,0 +1,45 @@
+@the stack type is ascending
+@ R0 stores the address of swap and the total number of swap
+@ R1 stores the total number of element in the array (M)
+@ R2 backs up the address of SP at array[i] (starting from array[0])
+@ R3 backs up the address of SP at array[i+1] (starting from array[1])
+@ R4 loads the content in array[i] (where R2 is pointing to)
+@ R5 loads the content in array[i+1] (where R3 is pointing to)
+@ R6 is the counter of the loop done within 1 iteration
+@ R7 is the counter of the total swap per iteration
+@ SP points at the lowest address within the preserved stack
+@ LR backs up the address in main C function and allows us to branch back
+
+@ write your program from here:
+bubble_sort:
+    MOV R0, #0
+	PUSH {R1-R11, LR}
+
+MAIN:
+    ADD SP, #76 @To allow SP points at the address of array[0]
+    MOV R2, SP  @Register that stores the address of array[i]
+    MOV R3, SP  @To prepare the register for array[i+1]
+    ADD R3, #4  @Increment of 4 for the loaded SP address to make R3 storing the address of array[i+1]
+    MOV R6, #1  @initialise the number of loop within 1 iteration
+    MOV R7, #0  @Total number of swap per iteration
+    SUB SP, #76 @To restore the value of SP back
+
+ITERATION:            @sort all of the array elememts stored in the ascending
+    LDR R4, [R2]      @content for array[i]
+    LDR R5, [R3]      @content for array[i+1]
+    CMP R4, R5        @If array[i] is greater than array[i+1],
+    ITTT GT
+      STRGT R5, [R2]  @Store the smaller value in the array[i] pointer
+      STRGT R4, [R3]  @Store the bigger value in the array[i+1] pointer, else do nothing
+      ADDGT R7, #1    @increment of 1 for total swap per iteration counter
+    ADD R2, #4        @update R2 with the next address (array[i+1])
+    ADD R3, #4        @update R3 with the next address (array[i+2])
+    ADD R6, #1        @increment of 1 for the counter of loop done within 1 iteration
+    CMP R1, R6        @Compare number of element in the array (M) with the value in counter of loop done within 1 iteration
+    IT NE             @If not equal, means not all numbers are checked within 1 iteration
+      BNE ITERATION   @Hence, loop iteration is repeated for the next two pair (array[i+1] and array[i+2])
+    CMP R7, #0        @Check within that round of iteration , if there is any swap taking place
+    ITT NE            @If there is still swapping,
+      ADDNE R0, R7    @Add the value stored in R7 into the final swap output
+      BNE MAIN        @Repeat another round of iteration again
+    POP {R1-R11, PC} @Otherwise, pop everything and branch back to C
